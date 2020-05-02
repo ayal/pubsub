@@ -1,0 +1,65 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+</head>
+
+<body style="background:black;color:white;">
+    <div id="frame-wrap"></div>
+    <div class="container-fluid" style="padding:30px; max-width:320px">
+        <div class="row" style="justify-content:center;">
+            <div class="col-8">
+                <input hidden class="form-control" type="text" id="message-input" />
+            </div>
+            <div class="col-3">
+                <button hidden id="send-button" type="button" class="btn btn-primary"
+                    onclick="sendMessage(document.getElementById('message-input').value)">send</button>
+            </div>
+        </div>
+        <div class="row" style="justify-content:center;">
+            <div id="messages" style="white-space:pre;font-size:13px;padding:30px" ;></div>
+        </div>
+    </div>
+    <script>
+        const sender_id = localStorage.getItem('sender_id') || (new Date().getTime()).toString().split('').reverse().slice(0,6).join('');
+        localStorage.setItem('sender_id', sender_id);
+
+        function init(room) {
+            document.getElementById('frame-wrap').innerHTML = `<iframe src="https://ayalg5.wixsite.com/pubsub?room=${room}" title="pubsub" style="display:none"></iframe>`;
+            window.sendMessage = (msg) => {
+                if (!msg) {
+                    return;
+                }
+                document.getElementById('message-input').value = '';
+                const msgstring = JSON.stringify({sender_id, msg})
+                fetch(
+                    `https://ayalg5.wixsite.com/pubsub/_functions/pubsub?room=${room}&message=${msgstring}`
+                );
+            }
+
+            window.addEventListener("message", message => {
+                if (message.data.pubsub) {
+                    const msg = JSON.parse(message.data.pubsub.payload);
+                    let who = msg.sender_id === sender_id ? 'me' : msg.sender_id;
+                    console.log("got message to sandbox window", message.data.pubsub);
+                    document.getElementById('messages').innerHTML += `<div class="alert alert-${who === 'me' : 'warning' : 'primary'}" role="alert"><span class="badge badge-warning">${who}</span> ${msg.msg}</div>`
+                }
+            });
+            // wait for iframe to load
+            setTimeout(()=>{
+                document.getElementById('message-input').hidden = false;
+                document.getElementById('send-button').hidden = false;
+                sendMessage(`I am in the room: ${room}`);
+            },5000)
+            
+        }
+
+        const room = (new URLSearchParams(location.search)).get('room') || 'world';
+        console.log('initing user with room', room);
+        init(room);
+    </script>
+</body>
+
+</html>
