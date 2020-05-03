@@ -44,7 +44,7 @@
                     const msg = JSON.parse(message.data.pubsub.payload);
                     let who = msg.sender_id === sender_id ? 'me' : msg.sender_id;
                     console.log("got message to sandbox window", message.data.pubsub);
-                    document.getElementById('messages').innerHTML += `<div class="alert alert-${who === 'me' : 'warning' : 'primary'}" role="alert"><span class="badge badge-warning">${who}</span> ${msg.msg}</div>`
+                    document.getElementById('messages').innerHTML += `<div class="alert alert-${who === 'me' ? 'warning' : 'primary'}" role="alert"><span class="badge badge-warning">${who}</span> ${msg.msg}</div>`
                 }
             });
             // wait for iframe to load
